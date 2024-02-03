@@ -82,7 +82,7 @@ theorem eq_zero_or_zero_of_dualTensorHom_tmul_eq_zero {f : Dual k V} {x : V}
   · rcases h with (rfl | rfl) <;> simp
 
 theorem Unit.apply_root_mem {Φ : Set V} (u : MulAction.stabilizer (V ≃ₗ[k] V) Φ) (x : Φ) :
-    u.val (x : V) ∈ Φ := by
+    (u : V ≃ₗ[k] V) x ∈ Φ := by
   obtain ⟨u, hu⟩ := u
   obtain ⟨x, hx⟩ := x
   change u x ∈ Φ
@@ -94,8 +94,8 @@ theorem Unit.apply_root_mem {Φ : Set V} (u : MulAction.stabilizer (V ≃ₗ[k] 
 @[simps]
 def Unit.toPerm {Φ : Set V} (u : MulAction.stabilizer (V ≃ₗ[k] V) Φ) : Equiv.Perm Φ
     where
-  toFun x := ⟨u.val x, Unit.apply_root_mem u x⟩
-  invFun x := ⟨u.val⁻¹ x, Unit.apply_root_mem u⁻¹ x⟩
+  toFun x := ⟨(u : V ≃ₗ[k] V) x, Unit.apply_root_mem u x⟩
+  invFun x := ⟨(u : V ≃ₗ[k] V)⁻¹ x, Unit.apply_root_mem u⁻¹ x⟩
   left_inv := by
     intro x
     simp only [Subtype.coe_mk]
@@ -132,28 +132,26 @@ theorem Unit.injective_toPerm' {Φ : Set V} (hΦ : Submodule.span k Φ = ⊤) :
   have hu' := DFunLike.congr_fun hu
   change ∀ x, _ = x at hu'
   ext v
-  change u.val v = v
+  change (u : V ≃ₗ[k] V) v = v
   have := DFunLike.congr_fun hu
   simp only [Unit.toPerm'_apply, Equiv.Perm.coe_one, id.def, SetCoe.forall] at this
   have mem1 : v ∈ Submodule.span k Φ := by
     rw [hΦ]
     exact Submodule.mem_top
-  have Hs : ∀ x : Φ, u.val x = x := by
-    sorry
-  apply Submodule.span_induction mem1 Hs
-  -- · intro x hx
-    specialize hu'
-    dsimp [unit.to_perm] at hu'
+  refine Submodule.span_induction mem1 ?_ ?_ ?_ ?_
+  · intro x hx
+    specialize hu' ⟨x, hx⟩
+    dsimp [Unit.toPerm] at hu'
     simp at hu'
     exact hu'
   · exact LinearEquiv.map_zero _
   · intro x y hx hy
     erw [LinearEquiv.map_add]
-    change u x + u y = x + y
+    change (u : V ≃ₗ[k] V) x + (u : V ≃ₗ[k] V) y = x + y
     rw [hx, hy]
   · intro t x hx
     erw [LinearEquiv.map_smul]
-    change t • u x = t • x
+    change t • (u : V ≃ₗ[k] V) x = t • x
     rw [hx]
 
 theorem finite_stabilizer_of_finite_of_span_eq_top {Φ : Set V} (hΦ₁ : Φ.Finite)
