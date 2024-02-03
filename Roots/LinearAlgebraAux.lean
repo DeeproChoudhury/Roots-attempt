@@ -91,7 +91,6 @@ theorem Unit.apply_root_mem {Φ : Set V} (u : MulAction.stabilizer (V ≃ₗ[k] 
   rw [← hu]
   exact mem_image_of_mem u hx
 
--- BEGIN: ed8c6549bwf9
 @[simps]
 def Unit.toPerm {Φ : Set V} (u : MulAction.stabilizer (V ≃ₗ[k] V) Φ) : Equiv.Perm Φ
     where
@@ -139,9 +138,11 @@ theorem Unit.injective_toPerm' {Φ : Set V} (hΦ : Submodule.span k Φ = ⊤) :
   have mem1 : v ∈ Submodule.span k Φ := by
     rw [hΦ]
     exact Submodule.mem_top
-  apply Submodule.span_induction mem1
-  · intro x hx
-    specialize hu' ⟨x, hx⟩
+  have Hs : ∀ x : Φ, u.val x = x := by
+    sorry
+  apply Submodule.span_induction mem1 Hs
+  -- · intro x hx
+    specialize hu'
     dsimp [unit.to_perm] at hu'
     simp at hu'
     exact hu'
