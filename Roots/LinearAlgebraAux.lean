@@ -130,40 +130,41 @@ theorem Unit.injective_toPerm' {Φ : Set V} (hΦ : Submodule.span k Φ = ⊤) :
   intro u hu
   rw [Subgroup.mem_bot]
   rw [MonoidHom.mem_ker] at hu
-  have hu' := FunLike.congr_fun hu
+  have hu' := DFunLike.congr_fun hu
   change ∀ x, _ = x at hu'
   ext v
   change u.val v = v
-  have := FunLike.congr_fun hu
+  have := DFunLike.congr_fun hu
   simp only [Unit.toPerm'_apply, Equiv.Perm.coe_one, id.def, SetCoe.forall] at this
   have mem1 : v ∈ Submodule.span k Φ := by
     rw [hΦ]
     exact Submodule.mem_top
   apply Submodule.span_induction mem1
-    intro x hx
+  · intro x hx
     specialize hu' ⟨x, hx⟩
     dsimp [unit.to_perm] at hu'
     simp at hu'
     exact hu'
-    exact LinearEquiv.map_zero _
-    intro x y hx hy
+  · exact LinearEquiv.map_zero _
+  · intro x y hx hy
     erw [LinearEquiv.map_add]
     change u x + u y = x + y
     rw [hx, hy]
-    intro t x hx
+  · intro t x hx
     erw [LinearEquiv.map_smul]
     change t • u x = t • x
     rw [hx]
 
 theorem finite_stabilizer_of_finite_of_span_eq_top {Φ : Set V} (hΦ₁ : Φ.Finite)
     (hΦ₂ : Submodule.span k Φ = ⊤) : Finite (MulAction.stabilizer (V ≃ₗ[k] V) Φ) :=
+    Finite.of_surjective (MulAction.stabilizer (V ≃ₗ[k] V) Φ) ⟨(1 : V ≃ₗ[k] V), rfl⟩
   haveI : Fintype Φ := hΦ₁.fintype
   _root_.finite.of_injective unit.to_perm' (unit.injective_to_perm' hΦ₂)
 
 theorem isOfFinOrder_of_finite_of_span_eq_top_of_image_subseteq {Φ : Set V} (hΦ₁ : Φ.Finite)
     (hΦ₂ : Submodule.span k Φ = ⊤) {u : V ≃ₗ[k] V} (hu : u '' Φ ⊆ Φ) : IsOfFinOrder u := by
   replace hu : u '' Φ = Φ
-  · haveI : Fintype Φ := finite.fintype hΦ₁
+  · haveI : Fintype Φ := hΦ₁.fintype
     apply Set.eq_of_subset_of_card_le hu
     rw [Set.card_image_of_injective Φ u.injective]
   let u' : MulAction.stabilizer (V ≃ₗ[k] V) Φ := ⟨u, hu⟩
@@ -173,7 +174,6 @@ theorem isOfFinOrder_of_finite_of_span_eq_top_of_image_subseteq {Φ : Set V} (h�
       have hord : 0 < orderOf u ↔ 0 < orderOf u' := iff_of_eq (congr_arg (LT.lt 0) this)
       rw [hord, orderOf_pos_iff]
     rw [← Subgroup.orderOf_coe u']
-    simp only [Subtype.coe_mk]
   rw [hu']
   haveI := finite_stabilizer_of_finite_of_span_eq_top hΦ₁ hΦ₂
   exact isOfFinOrder_of_finite u'
@@ -192,7 +192,7 @@ theorem eq_dual_of_toPreSymmetry_image_subseteq [CharZero k] [NoZeroSMulDivisors
         LinearEquiv.map_sub, LinearEquiv.map_smulₛₗ, RingHom.id_apply, LinearMap.add_apply,
         LinearMap.id_coe, id.def, dualTensorHom_apply, LinearMap.sub_apply, map_sub,
         sub_add_cancel', smul_neg, sub_neg_eq_add, sub_smul, two_smul]
-      abel
+      abel_nf
     replace hu : ∀ n : ℕ, ↑(u ^ n) = LinearMap.id + (n : k) • dualTensorHom k V V ((f - g) ⊗ₜ x)
     · intro n
       induction' n with n ih; · simpa
@@ -336,11 +336,11 @@ theorem Basis.toDual_posDef {k V ι : Type _} [LinearOrderedField k] [AddCommGro
     (b : Basis ι k V) : b.toDual.toBilin.toQuadraticForm.PosDef := by
   intro v hv
   simp only [BilinForm.toQuadraticForm_apply]
-  change 0 < b.to_dual v v
+  change 0 < b.toDual v v
   -- TODO Should be via `simp`.
   replace hv : (b.repr v).support.Nonempty;
   · contrapose! hv; simpa using hv
-  rw [← b.total_repr v, Finsupp.apply_total, b.to_dual_total_left', Finsupp.total_apply]
+  rw [← b.total_repr v, Finsupp.apply_total, b.toDual_total_left', Finsupp.total_apply]
   apply Finset.sum_pos
   rintro i hi
   simp only [Finsupp.mem_support_iff] at hi
@@ -358,7 +358,7 @@ theorem QuadraticForm.PosDef.sum {k V ι : Type _} [Finite ι] [Nonempty ι] [Li
       Finset.univ_nonempty fun i hi => hq _
 
 theorem LinearMap.toBilin.PosDef.ker_eq_bot {k V : Type _} [LinearOrderedField k] [AddCommGroup V]
-    [Module k V] (b : V →ₗ[k] Dual k V) (hb : b.toBilin.toQuadraticForm.PosDef) : b.ker = ⊥ := by
+  [Module k V] (b : V →ₗ[k] Dual k V) (hb : b.toBilin.toQuadraticForm.PosDef) : LinearMap.ker b = ⊥ := by
   ext v
   simp only [LinearMap.mem_ker, Submodule.mem_bot]
   refine' ⟨fun hv => _, fun hv => _⟩
